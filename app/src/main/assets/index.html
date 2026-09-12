@@ -154,14 +154,26 @@ const DEFAULT={
   3:[]
  }
 };
-const BARBER_CODES={
-  "ZN9-A7K2":1,
-  "ZN9-M4Q8":2,
-  "ZN9-L6P3":3
+const BARBER_TOKENS={
+  1:"A7K2",
+  2:"M4Q8",
+  3:"L6P3"
 };
 function monthKey(){
   const d=new Date();
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+}
+function monthlyCodeForBarber(id){
+  const d=new Date();
+  const yy=String(d.getFullYear()).slice(-2);
+  const mm=String(d.getMonth()+1).padStart(2,"0");
+  return "ZN-"+BARBER_TOKENS[id]+"-"+yy+mm;
+}
+function barberIdFromMonthlyCode(code){
+  for(const id of Object.keys(BARBER_TOKENS)){
+    if(monthlyCodeForBarber(Number(id))===code)return Number(id);
+  }
+  return null;
 }
 let data=loadData(),userLocation=null,sortMode="near",selectedBookingBarber=null,selectedService="hairBeard",selectedBarberId=Number(localStorage.getItem("zainliBarberId")||data.barbers[0].id);
 const $=s=>document.querySelector(s);
@@ -293,7 +305,7 @@ function checkBarberAccess(){
 }
 function unlockBarber(){
  const code=($("#barberCodeInput").value||"").trim().toUpperCase();
- const id=BARBER_CODES[code];
+ const id=barberIdFromMonthlyCode(code);
  if(!id){showToast("الكود غير صحيح أو منتهي");return;}
  selectedBarberId=id;
  localStorage.setItem("zainliBarberId",String(id));
