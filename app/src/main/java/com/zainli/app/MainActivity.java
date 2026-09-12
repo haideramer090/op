@@ -16,7 +16,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import androidx.core.app.NotificationCompat;
+import android.app.Notification;
 
 public class MainActivity extends Activity {
     private static final int LOCATION_REQ = 1001;
@@ -102,11 +102,15 @@ public class MainActivity extends Activity {
             PendingIntent pendingIntent = PendingIntent.getActivity(
                 MainActivity.this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
             );
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+            Notification.Builder builder;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                builder = new Notification.Builder(MainActivity.this, CHANNEL_ID);
+            } else {
+                builder = new Notification.Builder(MainActivity.this);
+            }
+            builder.setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle(title)
                 .setContentText(body)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
