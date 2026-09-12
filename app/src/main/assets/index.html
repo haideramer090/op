@@ -24,14 +24,35 @@ body.dark{--bg:#0b1220;--card:#111827;--text:#f8fafc;--muted:#94a3b8;--line:#273
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:70;display:none;align-items:flex-end}.overlay.show{display:flex}.sheet{width:100%;max-height:88vh;overflow:auto;background:var(--card);border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}.handle{width:42px;height:5px;background:var(--line);border-radius:99px;margin:0 auto 14px}.serviceChoice{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px;border:1px solid var(--line);border-radius:13px;margin-top:8px}.serviceChoice.active{border:2px solid var(--primary);background:var(--soft)}
 .toast{position:fixed;left:14px;right:14px;bottom:91px;z-index:100;background:var(--text);color:var(--bg);padding:12px;border-radius:13px;text-align:center;font-weight:800;display:none}.toast.show{display:block}
 .adminBarber,.reportItem,.pendingItem,.historyItem{padding:11px 0;border-bottom:1px solid var(--line)}.adminBarber:last-child,.reportItem:last-child,.pendingItem:last-child,.historyItem:last-child{border:0}.qrWrap{text-align:center}.qrWrap img{width:180px;height:180px;border-radius:12px;background:#fff;padding:8px}.stars{display:flex;justify-content:center;gap:7px;margin:14px 0}.star{font-size:34px;border:0;background:transparent;opacity:.35}.star.active{opacity:1}
+.roleGate{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;align-items:center;justify-content:center;padding:20px}.roleGate.show{display:flex}.roleCard{width:min(430px,100%);background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px;text-align:center;box-shadow:0 18px 45px rgba(0,0,0,.22)}.roleLogo{width:78px;height:78px;border-radius:23px;background:var(--primary);color:var(--primaryText);display:grid;place-items:center;margin:0 auto 14px;font-size:35px;font-weight:900}.roleChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.roleChoice{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:18px;padding:18px 10px;font-weight:900}.roleChoice .emoji{display:block;font-size:34px;margin-bottom:8px}.bottomNav.customer{grid-template-columns:repeat(2,1fr)}.bottomNav.barber{grid-template-columns:1fr}
 @media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.hero h1{font-size:21px}}
 </style>
 </head>
 <body>
+<div class="roleGate" id="roleGate">
+  <div class="roleCard" id="roleChoose">
+    <div class="roleLogo">ز</div>
+    <div class="sectionTitle" style="margin-bottom:6px">أهلاً بيك بزينلي</div>
+    <div class="meta">أول مرة فقط، اختار نوع حسابك</div>
+    <div class="roleChoices">
+      <button class="roleChoice" onclick="chooseRole('customer')"><span class="emoji">👤</span>زبون<div class="meta">بدون كود</div></button>
+      <button class="roleChoice" onclick="chooseRole('barber')"><span class="emoji">✂️</span>حلاق<div class="meta">يحتاج كود</div></button>
+    </div>
+  </div>
+  <div class="roleCard" id="roleBarberCode" style="display:none">
+    <div class="roleLogo">✂</div>
+    <div class="sectionTitle" style="margin-bottom:6px">دخول الحلاق</div>
+    <div class="meta">اكتب كود الاشتراك حتى تدخل لواجهة الحلاق</div>
+    <input id="firstBarberCode" class="input" placeholder="كود الاشتراك" style="margin-top:14px;text-align:center;text-transform:uppercase">
+    <button class="btn primary" style="width:100%;margin-top:10px" onclick="activateBarberRole()">دخول كحلاق</button>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="openRegisterFromRole()">تسجيل حلاق جديد</button>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="backRoleChoice()">رجوع</button>
+  </div>
+</div>
 <div class="app">
 <header>
  <div class="brand">زينلي</div>
- <div class="headActions"><button class="iconBtn" onclick="openAdmin()">⚙️</button><button class="iconBtn" id="themeBtn" onclick="toggleTheme()">🌙</button></div>
+ <div class="headActions"><button class="iconBtn" onclick="changeRole()" title="تغيير نوع الحساب">⇄</button><button class="iconBtn" onclick="openAdmin()">⚙️</button><button class="iconBtn" id="themeBtn" onclick="toggleTheme()">🌙</button></div>
 </header>
 <div class="wrap">
 <section class="view active" id="homeView">
@@ -58,7 +79,7 @@ body.dark{--bg:#0b1220;--card:#111827;--text:#f8fafc;--muted:#94a3b8;--line:#273
 </section>
 </div>
 
-<nav class="bottomNav">
+<nav class="bottomNav" id="bottomNav">
  <button class="navItem active" id="navHome" onclick="showView('home')">⌂<br><small>الرئيسية</small></button>
  <button class="navItem" id="navBooking" onclick="showView('booking')">✂<br><small>حجزي</small></button>
  <button class="navItem" id="navBarber" onclick="showView('barber')">👤<br><small>الحلاق</small></button>
@@ -95,11 +116,39 @@ async function rpc(name,body={}){
 function toast(x){const t=$("#toast");t.textContent=x;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600)}
 function toggleTheme(){const d=!document.body.classList.contains("dark");localStorage.setItem("zDark",d?"1":"0");applyTheme()}
 function applyTheme(){const d=localStorage.getItem("zDark")==="1";document.body.classList.toggle("dark",d);$("#themeBtn").textContent=d?"☀️":"🌙"}
-function showView(v){["home","booking","barber"].forEach(x=>{$("#"+x+"View").classList.toggle("active",x===v);$("#nav"+x[0].toUpperCase()+x.slice(1)).classList.toggle("active",x===v)});if(v==="home")refreshBarbers();if(v==="booking")refreshBooking();if(v==="barber")checkBarber()}
+function showView(v){const role=localStorage.getItem("zRole")||"";if(role==="barber"&&v!=="barber")v="barber";if(role==="customer"&&v==="barber")v="home";["home","booking","barber"].forEach(x=>{$("#"+x+"View").classList.toggle("active",x===v);$("#nav"+x[0].toUpperCase()+x.slice(1)).classList.toggle("active",x===v)});if(v==="home")refreshBarbers();if(v==="booking")refreshBooking();if(v==="barber")checkBarber()}
 function openOverlay(id){$("#"+id).classList.add("show")}function closeOverlay(id){$("#"+id).classList.remove("show")}function backdrop(e,id){if(e.target.id===id)closeOverlay(id)}
 function fmt(ts){return new Date(ts).toLocaleDateString("ar-IQ",{year:"numeric",month:"2-digit",day:"2-digit"})}
 function notify(t,b){try{if(window.Android&&Android.notifyUser)Android.notifyUser(t,b)}catch(e){}}
 function shareText(t){try{if(window.Android&&Android.shareText)Android.shareText(t);else if(navigator.share)navigator.share({text:t})}catch(e){}}
+function backRoleChoice(){$("#roleChoose").style.display="block";$("#roleBarberCode").style.display="none"}
+function changeRole(){$("#roleGate").classList.add("show");backRoleChoice()}
+function chooseRole(role){
+ if(role==="customer"){localStorage.setItem("zRole","customer");applyRole();return}
+ if(localStorage.getItem("zBarberToken")){localStorage.setItem("zRole","barber");applyRole();return}
+ $("#roleChoose").style.display="none";$("#roleBarberCode").style.display="block";setTimeout(()=>$("#firstBarberCode").focus(),100)
+}
+function openRegisterFromRole(){registerLoc=null;openOverlay("registerSheet")}
+async function activateBarberRole(){
+ const code=$("#firstBarberCode").value.trim().toUpperCase();if(!code){toast("اكتب كود الحلاق");return}
+ try{
+  const r=await rpc("z_redeem_barber_code",{p_code:code}),row=Array.isArray(r)?r[0]:r;
+  localStorage.setItem("zBarberToken",row.session_token);localStorage.setItem("zBarberId",row.barber_id);localStorage.setItem("zBarberExpiry",row.expires_at);localStorage.setItem("zRole","barber");
+  try{if(window.Android&&Android.registerBarberSession)Android.registerBarberSession(String(row.session_token),String(row.barber_id))}catch(_e){}
+  $("#firstBarberCode").value="";toast("تم تسجيلك كحلاق ✅");applyRole()
+ }catch(e){toast("الكود غير صحيح أو مستخدم")}
+}
+function applyRole(){
+ const role=localStorage.getItem("zRole")||"";
+ if(!role){$("#roleGate").classList.add("show");backRoleChoice();return}
+ $("#roleGate").classList.remove("show");
+ const nav=$("#bottomNav");nav.classList.remove("customer","barber");
+ if(role==="barber"){
+  nav.classList.add("barber");$("#navHome").style.display="none";$("#navBooking").style.display="none";$("#navBarber").style.display="block";showView("barber")
+ }else{
+  nav.classList.add("customer");$("#navHome").style.display="block";$("#navBooking").style.display="block";$("#navBarber").style.display="none";showView("home");refreshBooking()
+ }
+}
 
 async function refreshBarbers(){try{barbers=await rpc("z_public_barbers");renderHome()}catch(e){toast("تعذر الاتصال بالسيرفر")}}
 function dist(b){if(!userLoc)return null;const R=6371,r=x=>x*Math.PI/180,dl=r(b.lat-userLoc.lat),dn=r(b.lng-userLoc.lng),a=Math.sin(dl/2)**2+Math.cos(r(userLoc.lat))*Math.cos(r(b.lat))*Math.sin(dn/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
@@ -148,7 +197,7 @@ function openRegister(){registerLoc=null;openOverlay("registerSheet")}
 function captureRegisterLocation(){if(!navigator.geolocation){toast("GPS غير مدعوم");return}navigator.geolocation.getCurrentPosition(p=>{registerLoc={lat:p.coords.latitude,lng:p.coords.longitude};toast("تم حفظ الموقع")},()=>toast("تعذر أخذ الموقع"),{enableHighAccuracy:true})}
 async function submitRegistration(){const n=$("#regName").value.trim(),shop=$("#regShop").value.trim(),phone=$("#regPhone").value.trim(),area=$("#regArea").value.trim();if(!n||!shop||!phone||!area){toast("كمل البيانات");return}try{await rpc("z_register_barber",{p_name:n,p_shop:shop,p_phone:phone,p_area:area,p_lat:registerLoc?.lat||33.31,p_lng:registerLoc?.lng||44.36,p_start:$("#regStart").value,p_end:$("#regEnd").value});closeOverlay("registerSheet");toast("تم إرسال الطلب للإدارة ✅")}catch(e){toast("تعذر إرسال الطلب")}}
 
-async function unlockBarber(){const code=$("#barberCode").value.trim().toUpperCase();if(!code){toast("اكتب الكود");return}try{const r=await rpc("z_redeem_barber_code",{p_code:code}),row=Array.isArray(r)?r[0]:r;localStorage.setItem("zBarberToken",row.session_token);localStorage.setItem("zBarberId",row.barber_id);localStorage.setItem("zBarberExpiry",row.expires_at);try{if(window.Android&&Android.registerBarberSession)Android.registerBarberSession(String(row.session_token),String(row.barber_id))}catch(_e){}$("#barberCode").value="";toast("تم التفعيل 30 يوم ✅");checkBarber()}catch(e){toast("الكود غير صحيح أو مستخدم")}}
+async function unlockBarber(){const code=$("#barberCode").value.trim().toUpperCase();if(!code){toast("اكتب الكود");return}try{const r=await rpc("z_redeem_barber_code",{p_code:code}),row=Array.isArray(r)?r[0]:r;localStorage.setItem("zBarberToken",row.session_token);localStorage.setItem("zBarberId",row.barber_id);localStorage.setItem("zBarberExpiry",row.expires_at);localStorage.setItem("zRole","barber");try{if(window.Android&&Android.registerBarberSession)Android.registerBarberSession(String(row.session_token),String(row.barber_id))}catch(_e){}$("#barberCode").value="";toast("تم التفعيل 30 يوم ✅");applyRole()}catch(e){toast("الكود غير صحيح أو مستخدم")}}
 async function checkBarber(){const token=localStorage.getItem("zBarberToken")||"";if(!token){$("#barberLocked").style.display="block";$("#barberUnlocked").style.display="none";return}try{barberDash=await rpc("z_barber_dashboard",{p_token:token});try{if(window.Android&&Android.registerBarberSession)Android.registerBarberSession(String(token),String(barberDash.barber.id))}catch(_e){}$("#barberLocked").style.display="none";$("#barberUnlocked").style.display="block";renderBarber()}catch(e){localStorage.removeItem("zBarberToken");localStorage.removeItem("zBarberId");localStorage.removeItem("zBarberExpiry");try{if(window.Android&&Android.clearBarberSession)Android.clearBarberSession()}catch(_e){}$("#barberLocked").style.display="block";$("#barberUnlocked").style.display="none";toast("الاشتراك منتهي")}}
 function renderBarber(){const d=barberDash,b=d.barber,q=d.queue||[],hist=d.today_history||[],days=Math.max(0,Math.ceil((new Date(d.subscription_expires)-new Date())/86400000));$("#barberDashboard").innerHTML='<div class="sectionTitle">حساب الحلاق</div><div class="stats"><div class="stat"><strong>'+d.today_count+'</strong><span>زبون اليوم</span></div><div class="stat"><strong>'+Number(d.today_revenue).toLocaleString()+'</strong><span>إيراد اليوم</span></div><div class="stat"><strong>'+q.length+'</strong><span>بالانتظار</span></div></div><div class="card"><div class="barberName">'+b.name+'</div><div class="meta">'+b.shop+'<br>📞 '+b.phone+'<br>📍 '+b.area+'</div><div class="grid3" style="margin-top:10px">'+["open","busy","closed"].map(s=>'<button class="btn '+(b.status===s?'primary':'')+'" onclick="setBarberStatus(\''+s+'\')">'+statusText(s)+'</button>').join("")+'</div><button class="btn blue" style="width:100%;margin-top:8px" onclick="startBreak()">☕ استراحة 30 دقيقة</button></div><div class="card"><div class="subTitle">تفاصيل الاشتراك</div><div class="meta">الحالة: <strong style="color:var(--green)">فعال</strong><br>القيمة: <strong>15,000 د.ع / 30 يوم</strong><br>الانتهاء: <strong>'+fmt(d.subscription_expires)+'</strong><br>المتبقي: <strong>'+days+' يوم</strong></div></div><div class="card"><div class="subTitle">ساعات العمل</div><div class="grid2"><input id="workStart" class="input" type="time" value="'+String(b.work_start).slice(0,5)+'"><input id="workEnd" class="input" type="time" value="'+String(b.work_end).slice(0,5)+'"></div><button class="btn" style="width:100%;margin-top:8px" onclick="saveHours()">حفظ الدوام</button></div><div class="card"><div class="subTitle">الموقع والمشاركة</div><div class="row"><button class="btn" onclick="updateBarberLocation()">📍 تحديث موقعي</button><button class="btn" onclick="openQr('+b.id+')">QR</button><button class="btn" onclick="shareBarber('+b.id+')">مشاركة</button></div></div><div class="card"><div class="subTitle">إضافة زبون شارع</div><input id="walkName" class="input" placeholder="اسم الزبون"><input id="walkPhone" class="input" placeholder="الرقم - اختياري" style="margin-top:8px"><select id="walkService" class="input" style="margin-top:8px">'+ALL_SERVICES.map(k=>'<option value="'+k+'">'+SERVICES[k].name+' - '+SERVICES[k].price.toLocaleString()+' د.ع</option>').join("")+'</select><button class="btn primary" style="width:100%;margin-top:8px" onclick="addWalk()">إضافة للقائمة</button></div><div class="card"><div class="subTitle">قائمة الانتظار</div>'+(q.length?q.map((x,i)=>'<div class="queueItem"><div class="num">'+(i+1)+'</div><div><strong>'+x.customer_name+'</strong><div class="meta">'+SERVICES[x.service_key].name+' · '+(x.source==="booking"?"حجز":"شارع")+(x.customer_phone?' · '+x.customer_phone:'')+'</div></div><button class="btn green small" onclick="finishCustomer('+x.id+')">تم</button></div>').join(""):'<div class="empty">ماكو زبائن حالياً.</div>')+'</div><div class="card"><div class="subTitle">سجل اليوم</div>'+(hist.length?hist.map(x=>'<div class="historyItem"><strong>'+x.customer_name+'</strong><div class="meta">'+SERVICES[x.service_key].name+' · '+Number(x.price).toLocaleString()+' د.ع</div></div>').join(""):'<div class="empty">ماكو عمليات مكتملة اليوم.</div>')+'</div>'}
 async function setBarberStatus(s){try{await rpc("z_barber_set_status",{p_token:localStorage.getItem("zBarberToken"),p_status:s});await checkBarber();await refreshBarbers()}catch(e){toast("تعذر تغيير الحالة")}}
@@ -171,8 +220,8 @@ async function approvePending(id){try{await rpc("z_admin_approve_registration",{
 async function rejectPending(id){try{await rpc("z_admin_reject_registration",{p_code:adminCode,p_registration_id:id});await renderAdmin()}catch(e){toast("تعذر الرفض")}}
 async function addBarberAdmin(){const n=$("#adName").value.trim(),shop=$("#adShop").value.trim(),phone=$("#adPhone").value.trim(),area=$("#adArea").value.trim();if(!n||!shop||!phone||!area){toast("كمل البيانات");return}try{await rpc("z_admin_add_barber",{p_code:adminCode,p_name:n,p_shop:shop,p_phone:phone,p_area:area,p_lat:33.31,p_lng:44.36});toast("تمت الإضافة");await renderAdmin();await refreshBarbers()}catch(e){toast("تعذر إضافة الحلاق")}}
 
-applyTheme();refreshBarbers();refreshBooking();checkBarber();
-setInterval(async()=>{await refreshBarbers();if(Number(localStorage.getItem("zBookingId")||0))await refreshBooking();if(localStorage.getItem("zBarberToken"))await checkBarber()},4000);
+applyTheme();applyRole();
+setInterval(async()=>{const role=localStorage.getItem("zRole")||"";if(role==="customer"){await refreshBarbers();if(Number(localStorage.getItem("zBookingId")||0))await refreshBooking()}else if(role==="barber"&&localStorage.getItem("zBarberToken")){await checkBarber()}},4000);
 </script>
 </body>
 </html>
