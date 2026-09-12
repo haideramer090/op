@@ -1,66 +1,293 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>زينلي</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--btn:#111827;--btntext:#fff}
-body.dark{--bg:#0b1220;--card:#111827;--text:#f8fafc;--muted:#94a3b8;--line:#243041;--btn:#f8fafc;--btntext:#111827}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Tahoma,sans-serif;background:var(--bg);color:var(--text)}
-header{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);padding:14px;display:flex;justify-content:space-between;align-items:center}
-.wrap{padding:14px;max-width:720px;margin:auto}.tabs{display:flex;gap:8px;margin-bottom:14px}.tabs button{flex:1}
-button{border:1px solid var(--line);background:var(--card);color:var(--text);padding:11px;border-radius:11px;font-weight:700}
-.primary{background:var(--btn);color:var(--btntext);border-color:var(--btn)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
-.muted{color:var(--muted);font-size:13px;line-height:1.6}.barberHead{display:flex;justify-content:space-between;gap:12px}
-.count{font-size:34px;font-weight:900;text-align:center}.service{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}
-.actions{display:flex;gap:8px;margin-top:10px}.actions>*{flex:1}.hide{display:none}
-input,select{width:100%;padding:11px;margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
-.queueItem{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding:10px 0}.num{width:34px;height:34px;border-radius:9px;background:var(--bg);display:grid;place-items:center;font-weight:900}
-.badge{font-size:12px;padding:5px 8px;border-radius:999px;display:inline-block;margin-top:5px}.open{background:#dcfce7;color:#166534}.busy{background:#ffedd5;color:#9a3412}.closed{background:#fee2e2;color:#991b1b}
-.current{background:#fff7ed;border:1px solid #fed7aa}
+:root{
+ --bg:#f5f6f8;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
+ --primary:#111827;--primaryText:#fff;--soft:#f3f4f6;--sheet:#fff;
+ --green:#16803c;--greenBg:#e9f9ef;--amber:#a85b00;--amberBg:#fff4df;--red:#b42318;--redBg:#feeceb;
+}
+body.dark{
+ --bg:#0b1220;--card:#111827;--text:#f8fafc;--muted:#94a3b8;--line:#273449;
+ --primary:#f8fafc;--primaryText:#111827;--soft:#182235;--sheet:#111827;
+ --green:#7ee2a8;--greenBg:#123124;--amber:#ffd07a;--amberBg:#382a12;--red:#ff9b96;--redBg:#3a1d21;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Arial,Tahoma,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
+.app{min-height:100vh;padding-bottom:92px}
+header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:28px;font-weight:900}
+.iconBtn{width:46px;height:46px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);display:grid;place-items:center;font-size:20px}
+.wrap{width:min(720px,100%);margin:auto;padding:14px}
+.hero{padding:7px 2px 14px}.hero h1{margin:0;font-size:24px}.hero p{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.7}
+.location{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px;margin-bottom:12px}
+.location button{margin-right:auto}
+.btn{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--card);color:var(--text);font-weight:800}
+.btn.primary{background:var(--primary);color:var(--primaryText);border-color:var(--primary)}
+.btn.small{padding:9px 11px}
+.sorts{display:flex;gap:8px;overflow:auto;padding-bottom:10px}
+.chip{white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:var(--card);color:var(--text);font-weight:700}
+.chip.active{background:var(--primary);color:var(--primaryText);border-color:var(--primary)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}
+.barberTop{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+.barberName{font-size:20px;font-weight:900;margin-bottom:5px}.meta{font-size:13px;color:var(--muted);line-height:1.8}
+.queueBox{text-align:center;min-width:78px}.queueNum{font-size:34px;font-weight:900}.queueLabel{font-size:11px;color:var(--muted)}
+.wait{font-size:12px;font-weight:800;margin-top:4px}
+.badge{display:inline-block;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:900;margin-top:7px}
+.badge.open{background:var(--greenBg);color:var(--green)}.badge.busy{background:var(--amberBg);color:var(--amber)}.badge.closed{background:var(--redBg);color:var(--red)}
+.quickService{display:flex;justify-content:space-between;gap:8px;margin-top:13px;padding:11px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.quickService strong{font-size:17px}
+.actions{display:grid;grid-template-columns:1fr 48px 48px;gap:8px;margin-top:12px}
+.actions .btn{display:grid;place-items:center}
+.details{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.details.show{display:block}
+.serviceRow{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}.serviceRow:last-child{border-bottom:0}
+.sectionTitle{font-size:20px;font-weight:900;margin:5px 0 12px}
+.bookingCard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center}
+.turn{font-size:54px;font-weight:900;line-height:1;margin:12px 0 4px}.near{margin-top:10px;padding:10px;border-radius:12px;background:var(--amberBg);color:var(--amber);font-weight:900}
+.empty{text-align:center;padding:28px 14px;color:var(--muted)}
+.selector{display:flex;gap:8px;overflow:auto;margin-bottom:12px}.selector button{white-space:nowrap}
+.statusRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card);color:var(--text);outline:none}
+.input.full{grid-column:1/-1}
+.queueItem{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}.queueItem:last-child{border-bottom:0}
+.num{width:36px;height:36px;border-radius:10px;background:var(--soft);display:grid;place-items:center;font-weight:900}
+.bottomNav{position:fixed;bottom:0;left:0;right:0;z-index:25;background:var(--card);border-top:1px solid var(--line);padding:8px max(12px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.navItem{border:0;background:transparent;color:var(--muted);padding:8px 4px;border-radius:12px;font-weight:800}.navItem.active{background:var(--soft);color:var(--text)}
+.view{display:none}.view.active{display:block}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:none;align-items:flex-end}.overlay.show{display:flex}
+.sheet{width:100%;max-height:86vh;overflow:auto;background:var(--sheet);color:var(--text);border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -12px 40px rgba(0,0,0,.18)}
+.handle{width:42px;height:5px;background:var(--line);border-radius:999px;margin:0 auto 14px}
+.sheet h2{margin:0 0 4px}.sheet .input{margin-top:9px}.serviceChoice{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px;border:1px solid var(--line);border-radius:13px;margin-top:8px}.serviceChoice.active{border:2px solid var(--primary);background:var(--soft)}
+.toast{position:fixed;left:16px;right:16px;bottom:92px;z-index:70;background:var(--text);color:var(--bg);padding:12px 14px;border-radius:13px;text-align:center;font-weight:800;display:none}.toast.show{display:block}
+@media(max-width:520px){.formGrid{grid-template-columns:1fr}.input.full{grid-column:auto}.hero h1{font-size:22px}}
 </style>
 </head>
 <body>
-<header><strong style="font-size:22px">زينلي</strong><button id="themeBtn">🌙 دارك</button></header>
+<div class="app">
+<header><div class="brand">زينلي</div><button class="iconBtn" id="themeBtn" onclick="toggleTheme()">🌙</button></header>
 <div class="wrap">
-<div class="tabs"><button id="custTab" class="primary">زبون</button><button id="barbTab">حلاق</button></div>
-<section id="customer"><div id="currentBooking"></div><button id="locBtn" style="width:100%;margin-bottom:12px">📍 استخدم موقعي ورتب الأقرب</button><div id="barberList"></div></section>
-<section id="barber" class="hide">
-<div class="card"><h2>حساب الحلاق</h2><select id="barberSelect"></select></div>
-<div id="barberInfo"></div>
-<div class="card"><h3>إضافة زبون شارع</h3><input id="walkName" placeholder="اسم الزبون"><input id="walkPhone" placeholder="رقم الهاتف - اختياري"><select id="walkService"></select><button id="addWalk" class="primary" style="width:100%;margin-top:8px">+ إضافة للقائمة</button></div>
-<div class="card"><h3>قائمة الانتظار</h3><div id="queueList"></div></div>
+<section id="homeView" class="view active">
+ <div class="hero"><h1>اختار الحلاق المناسب إلك</h1><p>شوف الأقرب، عدد المنتظرين ووقت الانتظار التقريبي قبل ما تحجز.</p></div>
+ <div class="location"><span id="locationText">📍 الموقع غير محدد</span><button class="btn small" onclick="useMyLocation()">استخدم موقعي</button></div>
+ <div class="sorts"><button class="chip active" id="nearChip" onclick="setSort('near')">الأقرب</button><button class="chip" id="waitChip" onclick="setSort('wait')">أقل انتظار</button></div>
+ <div id="barberList"></div>
+</section>
+
+<section id="bookingView" class="view">
+ <div class="sectionTitle">حجزي</div>
+ <div id="myBooking"></div>
+</section>
+
+<section id="barberView" class="view">
+ <div class="sectionTitle">حساب الحلاق</div>
+ <div class="selector" id="barberSelector"></div>
+ <div id="barberInfo"></div>
+ <div class="card">
+  <div class="sectionTitle" style="font-size:17px">إضافة زبون شارع</div>
+  <div class="formGrid">
+   <input class="input" id="walkName" placeholder="اسم الزبون">
+   <input class="input" id="walkPhone" placeholder="رقم الهاتف - اختياري">
+   <select class="input full" id="walkService"></select>
+   <button class="btn primary input full" onclick="addWalkIn()">+ إضافة للقائمة</button>
+  </div>
+ </div>
+ <div class="card"><div class="sectionTitle" style="font-size:17px">قائمة الانتظار</div><div id="queueList"></div></div>
 </section>
 </div>
+
+<nav class="bottomNav">
+ <button class="navItem active" id="navHome" onclick="showView('home')">⌂<br><small>الرئيسية</small></button>
+ <button class="navItem" id="navBooking" onclick="showView('booking')">✂<br><small>حجزي</small></button>
+ <button class="navItem" id="navBarber" onclick="showView('barber')">👤<br><small>الحلاق</small></button>
+</nav>
+</div>
+
+<div class="overlay" id="bookingSheet" onclick="sheetBackdrop(event)">
+ <div class="sheet">
+  <div class="handle"></div>
+  <h2 id="sheetTitle">احجز</h2>
+  <div class="meta" id="sheetMeta"></div>
+  <input class="input" id="customerName" placeholder="اسمك">
+  <input class="input" id="customerPhone" inputmode="tel" placeholder="رقم الهاتف">
+  <div id="serviceChoices"></div>
+  <button class="btn primary" style="width:100%;margin-top:12px" onclick="confirmBooking()">تأكيد الحجز</button>
+  <button class="btn" style="width:100%;margin-top:8px" onclick="closeSheet()">إلغاء</button>
+ </div>
+</div>
+<div class="toast" id="toast"></div>
+
 <script>
-const SERVICES={hairBeard:{name:"شعر + لحية",price:10000},shape:{name:"تحديد",price:5000},care:{name:"شعر + لحية + عناية",price:15000}};
-const DEF={barbers:[
-{id:1,name:"أحمد",phone:"07701234567",area:"المنصور",lat:33.315,lng:44.339,status:"open",completedToday:14,services:["hairBeard","shape","care"]},
-{id:2,name:"مصطفى",phone:"07802345678",area:"الكرادة",lat:33.304,lng:44.424,status:"busy",completedToday:9,services:["hairBeard","shape"]},
-{id:3,name:"علي",phone:"07503456789",area:"زيونة",lat:33.324,lng:44.452,status:"open",completedToday:6,services:["hairBeard","care"]}],
-queues:{1:[{id:101,name:"محمد",phone:"07711111111",service:"hairBeard",source:"حجز"},{id:102,name:"حسين",phone:"07722222222",service:"shape",source:"شارع"}],2:[{id:201,name:"عمر",phone:"07833333333",service:"hairBeard",source:"حجز"}],3:[]}};
-let data=JSON.parse(localStorage.zainli||JSON.stringify(DEF));let loc=null;let sel=1;
-const $=x=>document.querySelector(x);const save=()=>localStorage.zainli=JSON.stringify(data);
-function dist(a,b,c,d){const R=6371,r=x=>x*Math.PI/180,D1=r(c-a),D2=r(d-b),q=Math.sin(D1/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(D2/2)**2;return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))}
-function dtext(b){if(!loc)return"حدد موقعك";let d=dist(loc.lat,loc.lng,b.lat,b.lng);return d<1?Math.round(d*1000)+" متر":d.toFixed(1)+" كم"}
-function status(s){return s==="open"?"متاح":s==="busy"?"مشغول":"مغلق"}
-function setMode(m){$("#customer").classList.toggle("hide",m!=="c");$("#barber").classList.toggle("hide",m!=="b");$("#custTab").classList.toggle("primary",m==="c");$("#barbTab").classList.toggle("primary",m==="b");if(m==="b")renderBarber()}
-$("#custTab").onclick=()=>setMode("c");$("#barbTab").onclick=()=>setMode("b");
-let dark=localStorage.dark==="1";function theme(){document.body.classList.toggle("dark",dark);$("#themeBtn").textContent=dark?"☀️ لايت":"🌙 دارك";localStorage.dark=dark?"1":"0"}theme();$("#themeBtn").onclick=()=>{dark=!dark;theme()}
-$("#locBtn").onclick=()=>navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>{loc={lat:p.coords.latitude,lng:p.coords.longitude};renderCustomer()},()=>alert("ما تم السماح بالموقع"));
-function call(p){location.href="tel:"+p} function map(b){location.href="geo:"+b.lat+","+b.lng+"?q="+b.lat+","+b.lng+"("+encodeURIComponent(b.name)+")"}
-function current(){let id=Number(localStorage.booking||0);for(let b of data.barbers){let q=data.queues[b.id]||[],i=q.findIndex(x=>x.id===id);if(i>=0)return{b:b,x:q[i],pos:i+1}}return null}
-function renderCurrent(){let c=current();$("#currentBooking").innerHTML=c?'<div class="card current"><h3>حجزك الحالي</h3><div>عند '+c.b.name+' · دورك '+c.pos+' · قبلك '+(c.pos-1)+'</div>'+(c.pos===2?'<div style="margin-top:8px;font-weight:700">🔔 باقي شخص واحد قبلك</div>':'')+'<button onclick="cancelBooking()" style="width:100%;margin-top:8px">إلغاء الحجز</button></div>':""}
-function cancelBooking(){let c=current();if(!c)return;data.queues[c.b.id]=data.queues[c.b.id].filter(x=>x.id!==c.x.id);delete localStorage.booking;save();renderAll()}
-function renderCustomer(){let bs=[...data.barbers];if(loc)bs.sort((a,b)=>dist(loc.lat,loc.lng,a.lat,a.lng)-dist(loc.lat,loc.lng,b.lat,b.lng));$("#barberList").innerHTML=bs.map(b=>{let q=data.queues[b.id]||[];let services=b.services.map(s=>'<div class="service"><span>'+SERVICES[s].name+'</span><strong>'+SERVICES[s].price.toLocaleString()+' د.ع</strong></div>').join("");let opts=b.services.map(s=>'<option value="'+s+'">'+SERVICES[s].name+'</option>').join("");return '<div class="card"><div class="barberHead"><div><h3>'+b.name+'</h3><div class="muted">📍 '+b.area+' · '+dtext(b)+'<br>📞 '+b.phone+'<br>اليوم: '+b.completedToday+' زبون</div><span class="badge '+b.status+'">'+status(b.status)+'</span></div><div><div class="count">'+q.length+'</div><div class="muted">منتظر</div></div></div>'+services+'<input id="n'+b.id+'" placeholder="اسمك"><input id="p'+b.id+'" placeholder="رقم الهاتف"><select id="s'+b.id+'">'+opts+'</select><div class="actions"><button class="primary" '+(b.status==="closed"?'disabled':'')+' onclick="book('+b.id+')">'+(b.status==="closed"?'مغلق':'احجز')+'</button><button onclick="call(\''+b.phone+'\')">📞 اتصال</button><button onclick="map(data.barbers.find(x=>x.id=='+b.id+'))">📍 خريطة</button></div></div>'}).join("");renderCurrent()}
-function book(id){let b=data.barbers.find(x=>x.id===id),name=$("#n"+id).value.trim(),phone=$("#p"+id).value.trim();if(!name||!phone)return alert("اكتب الاسم ورقم الهاتف");if(data.barbers.some(z=>(data.queues[z.id]||[]).some(q=>q.phone===phone)))return alert("عندك حجز فعال حالياً");let q=data.queues[id]||[],newId=Date.now(),before=q.length;q.push({id:newId,name:name,phone:phone,service:$("#s"+id).value,source:"حجز"});data.queues[id]=q;localStorage.booking=newId;save();alert("تم الحجز. قبلك "+before+" شخص");renderAll()}
-function renderBarber(){let b=data.barbers.find(x=>x.id===sel),q=data.queues[b.id]||[];$("#barberSelect").value=sel;$("#barberInfo").innerHTML='<div class="card"><h3>'+b.name+'</h3><div class="muted">📞 '+b.phone+'<br>📍 '+b.area+'<br>اليوم: '+b.completedToday+' زبون</div><select onchange="chgStatus(this.value)"><option value="open" '+(b.status==="open"?'selected':'')+'>متاح</option><option value="busy" '+(b.status==="busy"?'selected':'')+'>مشغول</option><option value="closed" '+(b.status==="closed"?'selected':'')+'>مغلق</option></select></div>';$("#walkService").innerHTML=b.services.map(s=>'<option value="'+s+'">'+SERVICES[s].name+'</option>').join("");$("#queueList").innerHTML=q.length?q.map((x,i)=>'<div class="queueItem"><div class="num">'+(i+1)+'</div><div style="flex:1"><strong>'+x.name+'</strong><div class="muted">'+SERVICES[x.service].name+' · '+x.source+(x.phone?' · '+x.phone:'')+'</div></div><button onclick="finish('+x.id+')">تم</button></div>').join(""):'<div class="muted">ماكو زبائن حالياً</div>'}
-$("#barberSelect").innerHTML=data.barbers.map(b=>'<option value="'+b.id+'">'+b.name+' - '+b.area+'</option>').join("");$("#barberSelect").onchange=e=>{sel=Number(e.target.value);renderBarber()}
-function chgStatus(s){data.barbers.find(x=>x.id===sel).status=s;save();renderAll()}
-$("#addWalk").onclick=()=>{let n=$("#walkName").value.trim();if(!n)return alert("اكتب اسم الزبون");let q=data.queues[sel]||[];q.push({id:Date.now(),name:n,phone:$("#walkPhone").value.trim(),service:$("#walkService").value,source:"شارع"});data.queues[sel]=q;save();$("#walkName").value="";$("#walkPhone").value="";renderAll()}
-function finish(id){let b=data.barbers.find(x=>x.id===sel);data.queues[sel]=(data.queues[sel]||[]).filter(x=>x.id!==id);b.completedToday++;if(Number(localStorage.booking||0)===id)delete localStorage.booking;save();renderAll()}
-function renderAll(){renderCustomer();renderBarber()}renderAll();
+const SERVICES={
+ hairBeard:{name:"شعر + لحية",price:10000,duration:25},
+ shape:{name:"تحديد",price:5000,duration:10},
+ care:{name:"شعر + لحية + عناية",price:15000,duration:40}
+};
+const ALL_SERVICES=["hairBeard","shape","care"];
+const DEFAULT={
+ barbers:[
+  {id:1,name:"أحمد",phone:"07701234567",area:"المنصور",lat:33.315,lng:44.339,status:"open",completedToday:14},
+  {id:2,name:"مصطفى",phone:"07802345678",area:"الكرادة",lat:33.304,lng:44.424,status:"busy",completedToday:9},
+  {id:3,name:"علي",phone:"07503456789",area:"زيونة",lat:33.324,lng:44.452,status:"open",completedToday:6}
+ ],
+ queues:{
+  1:[{id:101,name:"محمد",phone:"07711111111",service:"hairBeard",source:"حجز"},{id:102,name:"حسين",phone:"07722222222",service:"shape",source:"شارع"}],
+  2:[{id:201,name:"عمر",phone:"07833333333",service:"hairBeard",source:"حجز"}],
+  3:[]
+ }
+};
+let data=loadData(),userLocation=null,sortMode="near",selectedBookingBarber=null,selectedService="hairBeard",selectedBarberId=data.barbers[0].id;
+const $=s=>document.querySelector(s);
+
+function normalize(){
+ data.barbers.forEach(b=>{
+  b.services=[...ALL_SERVICES];
+  if(!b.status)b.status="open";
+  if(typeof b.completedToday!=="number")b.completedToday=0;
+ });
+ for(const b of data.barbers){
+  if(!data.queues[b.id])data.queues[b.id]=[];
+  data.queues[b.id].forEach(q=>{if(!SERVICES[q.service])q.service="hairBeard"});
+ }
+ save();
+}
+function loadData(){
+ try{
+  const raw=localStorage.getItem("zainli_v2_data")||localStorage.getItem("zainliNearbySimple");
+  return raw?JSON.parse(raw):JSON.parse(JSON.stringify(DEFAULT));
+ }catch(e){return JSON.parse(JSON.stringify(DEFAULT))}
+}
+function save(){localStorage.setItem("zainli_v2_data",JSON.stringify(data))}
+function toggleTheme(){const d=!document.body.classList.contains("dark");localStorage.setItem("zainliDark",d?"1":"0");applyTheme()}
+function applyTheme(){const d=localStorage.getItem("zainliDark")==="1";document.body.classList.toggle("dark",d);$("#themeBtn").textContent=d?"☀️":"🌙"}
+function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800)}
+function statusLabel(s){return s==="open"?"متاح":s==="busy"?"مشغول":"مغلق"}
+function qFor(id){return data.queues[id]||[]}
+function waitMinutes(id){return qFor(id).reduce((sum,x)=>sum+(SERVICES[x.service]?.duration||20),0)}
+function dist(b){
+ if(!userLocation)return null;
+ const R=6371,r=x=>x*Math.PI/180,dLat=r(b.lat-userLocation.lat),dLon=r(b.lng-userLocation.lng);
+ const a=Math.sin(dLat/2)**2+Math.cos(r(userLocation.lat))*Math.cos(r(b.lat))*Math.sin(dLon/2)**2;
+ return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function distText(b){const d=dist(b);if(d==null)return "حدد موقعك";return d<1?Math.round(d*1000)+" م":d.toFixed(1)+" كم"}
+function useMyLocation(){
+ if(!navigator.geolocation){showToast("GPS غير مدعوم");return}
+ $("#locationText").textContent="📡 جاري تحديد موقعك...";
+ navigator.geolocation.getCurrentPosition(p=>{
+  userLocation={lat:p.coords.latitude,lng:p.coords.longitude};
+  $("#locationText").textContent="✅ تم تحديد موقعك";
+  renderHome();
+ },()=>{$("#locationText").textContent="⚠️ تعذر تحديد الموقع"},{enableHighAccuracy:true,timeout:10000});
+}
+function setSort(mode){
+ sortMode=mode;$("#nearChip").classList.toggle("active",mode==="near");$("#waitChip").classList.toggle("active",mode==="wait");renderHome();
+}
+function showView(v){
+ ["home","booking","barber"].forEach(x=>{
+  $("#"+x+"View").classList.toggle("active",x===v);
+  $("#nav"+x[0].toUpperCase()+x.slice(1)).classList.toggle("active",x===v);
+ });
+ if(v==="booking")renderMyBooking();
+ if(v==="barber")renderBarber();
+}
+function renderHome(){
+ let arr=[...data.barbers];
+ if(sortMode==="wait")arr.sort((a,b)=>waitMinutes(a.id)-waitMinutes(b.id));
+ else if(userLocation)arr.sort((a,b)=>(dist(a)??999)-(dist(b)??999));
+ const root=$("#barberList");root.innerHTML="";
+ arr.forEach(b=>{
+  const q=qFor(b.id),w=waitMinutes(b.id),available=q.length===0&&b.status!=="closed";
+  const el=document.createElement("div");el.className="card";
+  el.innerHTML=
+   '<div class="barberTop"><div><div class="barberName">'+b.name+'</div>'+
+   '<div class="meta">📍 '+b.area+' · '+distText(b)+'<br>📞 '+b.phone+'<br>اليوم: '+b.completedToday+' زبون</div>'+
+   '<span class="badge '+b.status+'">'+statusLabel(b.status)+'</span></div>'+
+   '<div class="queueBox"><div class="queueNum">'+q.length+'</div><div class="queueLabel">منتظر</div><div class="wait">'+(available?'متاح الآن ⚡':(w+' دقيقة تقريباً'))+'</div></div></div>'+
+   '<div class="quickService"><span>شعر + لحية</span><strong>10,000 د.ع</strong></div>'+
+   '<div class="actions"><button class="btn primary" '+(b.status==="closed"?'disabled style="opacity:.45"':'')+' onclick="openSheet('+b.id+')">'+(b.status==="closed"?'مغلق':'احجز')+'</button>'+
+   '<a class="btn" href="tel:'+b.phone+'">📞</a><a class="btn" href="https://www.google.com/maps/search/?api=1&query='+b.lat+','+b.lng+'">📍</a></div>'+
+   '<button class="btn" style="width:100%;margin-top:8px" onclick="toggleDetails('+b.id+')">التفاصيل والخدمات</button>'+
+   '<div class="details" id="details-'+b.id+'">'+ALL_SERVICES.map(k=>'<div class="serviceRow"><span>'+SERVICES[k].name+'</span><strong>'+SERVICES[k].price.toLocaleString()+' د.ع</strong></div>').join("")+'</div>';
+  root.appendChild(el);
+ });
+}
+function toggleDetails(id){$("#details-"+id).classList.toggle("show")}
+function openSheet(id){
+ const b=data.barbers.find(x=>x.id===id);if(!b||b.status==="closed")return;
+ selectedBookingBarber=id;selectedService="hairBeard";
+ $("#sheetTitle").textContent="احجز عند "+b.name;
+ $("#sheetMeta").textContent=qFor(id).length===0?"متاح الآن":qFor(id).length+" قبلك · تقريباً "+waitMinutes(id)+" دقيقة";
+ renderServiceChoices();$("#bookingSheet").classList.add("show");
+}
+function renderServiceChoices(){
+ $("#serviceChoices").innerHTML=ALL_SERVICES.map(k=>'<div class="serviceChoice '+(selectedService===k?'active':'')+'" onclick="selectedService=\''+k+'\';renderServiceChoices()"><span>'+SERVICES[k].name+'<br><small class="meta">'+SERVICES[k].duration+' دقيقة تقريباً</small></span><strong>'+SERVICES[k].price.toLocaleString()+' د.ع</strong></div>').join("");
+}
+function closeSheet(){$("#bookingSheet").classList.remove("show")}
+function sheetBackdrop(e){if(e.target.id==="bookingSheet")closeSheet()}
+function currentBooking(){
+ const id=Number(localStorage.getItem("zainliCurrentBookingId")||0);if(!id)return null;
+ for(const b of data.barbers){const q=qFor(b.id),i=q.findIndex(x=>x.id===id);if(i>=0)return {barber:b,item:q[i],position:i+1,wait:q.slice(0,i).reduce((s,x)=>s+(SERVICES[x.service]?.duration||20),0)}}
+ localStorage.removeItem("zainliCurrentBookingId");return null;
+}
+function confirmBooking(){
+ const name=$("#customerName").value.trim(),phone=$("#customerPhone").value.trim();
+ if(!name||!phone){showToast("اكتب الاسم ورقم الهاتف");return}
+ const duplicate=data.barbers.some(b=>qFor(b.id).some(x=>x.phone===phone));
+ if(duplicate){showToast("عندك حجز فعال حالياً");return}
+ const q=qFor(selectedBookingBarber),id=Date.now(),before=q.length;
+ q.push({id,name,phone,service:selectedService,source:"حجز"});
+ localStorage.setItem("zainliCurrentBookingId",String(id));save();closeSheet();renderHome();renderMyBooking();
+ $("#customerName").value="";$("#customerPhone").value="";
+ showToast("تم الحجز · قبلك "+before+" شخص");
+}
+function renderMyBooking(){
+ const root=$("#myBooking"),c=currentBooking();
+ if(!c){root.innerHTML='<div class="card empty">ما عندك حجز فعال حالياً.</div>';return}
+ root.innerHTML='<div class="bookingCard"><div class="barberName">'+c.barber.name+'</div><div class="meta">'+c.barber.area+' · '+SERVICES[c.item.service].name+'</div>'+
+ '<div class="turn">'+c.position+'</div><div class="meta">رقم دورك · قبلك '+(c.position-1)+'</div>'+
+ '<div style="margin-top:8px;font-weight:900">وقت الانتظار التقريبي: '+c.wait+' دقيقة</div>'+
+ (c.position===2?'<div class="near">🔔 باقي شخص واحد قبلك</div>':'')+
+ '<div class="actions" style="grid-template-columns:1fr 1fr"><a class="btn" href="tel:'+c.barber.phone+'">📞 اتصال</a><a class="btn" href="https://www.google.com/maps/search/?api=1&query='+c.barber.lat+','+c.barber.lng+'">📍 الخريطة</a></div>'+
+ '<button class="btn" style="width:100%;margin-top:8px;color:var(--red)" onclick="cancelBooking()">إلغاء الحجز</button></div>';
+}
+function cancelBooking(){
+ const c=currentBooking();if(!c)return;
+ data.queues[c.barber.id]=qFor(c.barber.id).filter(x=>x.id!==c.item.id);
+ localStorage.removeItem("zainliCurrentBookingId");save();renderHome();renderMyBooking();renderBarber();showToast("تم إلغاء الحجز");
+}
+function renderBarberSelector(){
+ $("#barberSelector").innerHTML=data.barbers.map(b=>'<button class="chip '+(selectedBarberId===b.id?'active':'')+'" onclick="selectedBarberId='+b.id+';renderBarber()">'+b.name+'</button>').join("");
+}
+function renderBarber(){
+ renderBarberSelector();
+ const b=data.barbers.find(x=>x.id===selectedBarberId)||data.barbers[0],q=qFor(b.id);
+ $("#barberInfo").innerHTML='<div class="card"><div class="barberName">'+b.name+'</div><div class="meta">📞 '+b.phone+'<br>📍 '+b.area+'<br>اليوم: <strong>'+b.completedToday+' زبون</strong><br>الانتظار الحالي: <strong>'+waitMinutes(b.id)+' دقيقة تقريباً</strong></div>'+
+ '<div class="statusRow">'+["open","busy","closed"].map(s=>'<button class="btn '+(b.status===s?'primary':'')+'" onclick="changeStatus(\''+s+'\')">'+statusLabel(s)+'</button>').join("")+'</div></div>';
+ $("#walkService").innerHTML=ALL_SERVICES.map(k=>'<option value="'+k+'">'+SERVICES[k].name+' - '+SERVICES[k].price.toLocaleString()+' د.ع</option>').join("");
+ const list=$("#queueList");if(!q.length){list.innerHTML='<div class="empty">ماكو زبائن حالياً.</div>';return}
+ list.innerHTML=q.map((x,i)=>'<div class="queueItem"><div class="num">'+(i+1)+'</div><div><strong>'+x.name+'</strong><div class="meta">'+SERVICES[x.service].name+' · '+x.source+(x.phone?' · '+x.phone:'')+'</div></div><button class="btn small" onclick="finishCustomer('+x.id+')">تم</button></div>').join("");
+}
+function changeStatus(s){const b=data.barbers.find(x=>x.id===selectedBarberId);b.status=s;save();renderBarber();renderHome()}
+function addWalkIn(){
+ const name=$("#walkName").value.trim(),phone=$("#walkPhone").value.trim(),service=$("#walkService").value;
+ if(!name){showToast("اكتب اسم الزبون");return}
+ qFor(selectedBarberId).push({id:Date.now(),name,phone,service,source:"شارع"});save();$("#walkName").value="";$("#walkPhone").value="";renderBarber();renderHome();
+}
+function finishCustomer(id){
+ const b=data.barbers.find(x=>x.id===selectedBarberId);
+ data.queues[b.id]=qFor(b.id).filter(x=>x.id!==id);b.completedToday++;
+ if(Number(localStorage.getItem("zainliCurrentBookingId")||0)===id)localStorage.removeItem("zainliCurrentBookingId");
+ save();renderBarber();renderHome();renderMyBooking();
+ const c=currentBooking();if(c&&c.position===2)showToast("🔔 باقي شخص واحد قبلك");
+}
+normalize();applyTheme();renderHome();renderMyBooking();renderBarber();
 </script>
 </body>
 </html>
