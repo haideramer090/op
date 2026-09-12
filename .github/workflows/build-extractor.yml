@@ -1,0 +1,26 @@
+name: Build Zainli Barber Extractor EXE
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "extractor/**"
+      - ".github/workflows/build-extractor.yml"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install pyinstaller openpyxl
+      - name: Build EXE
+        run: pyinstaller --noconfirm --clean --onefile --windowed --name Zainli_Barber_Extractor extractor/zainli_barber_extractor.py
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: Zainli-Barber-Extractor-Windows
+          path: dist/Zainli_Barber_Extractor.exe
