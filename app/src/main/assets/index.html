@@ -86,9 +86,19 @@ header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px
 </section>
 
 <section id="barberView" class="view">
- <div class="sectionTitle">حساب الحلاق</div>
- <div class="selector" id="barberSelector"></div>
- <div id="barberInfo"></div>
+ <div id="barberLock">
+  <div class="sectionTitle">حساب الحلاق</div>
+  <div class="card" style="text-align:center">
+   <div style="font-size:46px;margin-bottom:10px">🔒</div>
+   <div class="barberName">حساب الحلاق مقفول</div>
+   <div class="meta">أدخل كود الاشتراك الشهري حتى ينفتح حسابك.</div>
+   <input class="input" id="barberCodeInput" placeholder="كود الاشتراك" style="margin-top:14px;text-align:center">
+   <button class="btn primary" style="width:100%;margin-top:10px" onclick="unlockBarber()">فتح حساب الحلاق</button>
+  </div>
+ </div>
+ <div id="barberUnlocked" style="display:none">
+  <div class="sectionTitle">حساب الحلاق</div>
+  <div id="barberInfo"></div>
  <div class="card">
   <div class="sectionTitle" style="font-size:17px">إضافة زبون شارع</div>
   <div class="formGrid">
@@ -99,6 +109,8 @@ header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px
   </div>
  </div>
  <div class="card"><div class="sectionTitle" style="font-size:17px">قائمة الانتظار</div><div id="queueList"></div></div>
+ <button class="btn" style="width:100%;margin-bottom:12px;color:var(--red)" onclick="lockBarber()">تسجيل خروج الحلاق</button>
+ </div>
 </section>
 </div>
 
@@ -142,7 +154,16 @@ const DEFAULT={
   3:[]
  }
 };
-let data=loadData(),userLocation=null,sortMode="near",selectedBookingBarber=null,selectedService="hairBeard",selectedBarberId=data.barbers[0].id;
+const BARBER_CODES={
+  "ZN9-A7K2":1,
+  "ZN9-M4Q8":2,
+  "ZN9-L6P3":3
+};
+function monthKey(){
+  const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+}
+let data=loadData(),userLocation=null,sortMode="near",selectedBookingBarber=null,selectedService="hairBeard",selectedBarberId=Number(localStorage.getItem("zainliBarberId")||data.barbers[0].id);
 const $=s=>document.querySelector(s);
 
 function normalize(){
@@ -195,7 +216,7 @@ function showView(v){
   $("#nav"+x[0].toUpperCase()+x.slice(1)).classList.toggle("active",x===v);
  });
  if(v==="booking")renderMyBooking();
- if(v==="barber")renderBarber();
+ if(v==="barber")checkBarberAccess();
 }
 function renderHome(){
  let arr=[...data.barbers];
@@ -262,11 +283,33 @@ function cancelBooking(){
  data.queues[c.barber.id]=qFor(c.barber.id).filter(x=>x.id!==c.item.id);
  localStorage.removeItem("zainliCurrentBookingId");save();renderHome();renderMyBooking();renderBarber();showToast("تم إلغاء الحجز");
 }
-function renderBarberSelector(){
- $("#barberSelector").innerHTML=data.barbers.map(b=>'<button class="chip '+(selectedBarberId===b.id?'active':'')+'" onclick="selectedBarberId='+b.id+';renderBarber()">'+b.name+'</button>').join("");
+function checkBarberAccess(){
+ const savedMonth=localStorage.getItem("zainliBarberMonth");
+ const savedId=Number(localStorage.getItem("zainliBarberId")||0);
+ const ok=savedMonth===monthKey() && data.barbers.some(b=>b.id===savedId);
+ $("#barberLock").style.display=ok?"none":"block";
+ $("#barberUnlocked").style.display=ok?"block":"none";
+ if(ok){selectedBarberId=savedId;renderBarber();}
+}
+function unlockBarber(){
+ const code=($("#barberCodeInput").value||"").trim().toUpperCase();
+ const id=BARBER_CODES[code];
+ if(!id){showToast("الكود غير صحيح أو منتهي");return;}
+ selectedBarberId=id;
+ localStorage.setItem("zainliBarberId",String(id));
+ localStorage.setItem("zainliBarberMonth",monthKey());
+ $("#barberCodeInput").value="";
+ showToast("تم فتح حساب الحلاق لهذا الشهر ✅");
+ checkBarberAccess();
+}
+function lockBarber(){
+ localStorage.removeItem("zainliBarberId");
+ localStorage.removeItem("zainliBarberMonth");
+ selectedBarberId=data.barbers[0].id;
+ checkBarberAccess();
+ showToast("تم تسجيل الخروج");
 }
 function renderBarber(){
- renderBarberSelector();
  const b=data.barbers.find(x=>x.id===selectedBarberId)||data.barbers[0],q=qFor(b.id);
  $("#barberInfo").innerHTML='<div class="card"><div class="barberName">'+b.name+'</div><div class="meta">📞 '+b.phone+'<br>📍 '+b.area+'<br>اليوم: <strong>'+b.completedToday+' زبون</strong><br>الانتظار الحالي: <strong>'+waitMinutes(b.id)+' دقيقة تقريباً</strong></div>'+
  '<div class="statusRow">'+["open","busy","closed"].map(s=>'<button class="btn '+(b.status===s?'primary':'')+'" onclick="changeStatus(\''+s+'\')">'+statusLabel(s)+'</button>').join("")+'</div></div>';
@@ -287,7 +330,7 @@ function finishCustomer(id){
  save();renderBarber();renderHome();renderMyBooking();
  const c=currentBooking();if(c&&c.position===2)showToast("🔔 باقي شخص واحد قبلك");
 }
-normalize();applyTheme();renderHome();renderMyBooking();renderBarber();
+normalize();applyTheme();renderHome();renderMyBooking();checkBarberAccess();
 </script>
 </body>
 </html>
