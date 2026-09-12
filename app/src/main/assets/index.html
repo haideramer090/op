@@ -91,7 +91,7 @@ header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px
   <div class="card" style="text-align:center">
    <div style="font-size:46px;margin-bottom:10px">🔒</div>
    <div class="barberName">حساب الحلاق مقفول</div>
-   <div class="meta">أدخل كود الاشتراك الشهري حتى ينفتح حسابك.</div>
+   <div class="meta">أدخل كود الاشتراك حتى ينفتح حسابك لمدة 30 يوم فقط.<br><strong>الاشتراك: 15,000 د.ع / 30 يوم</strong></div>
    <input class="input" id="barberCodeInput" placeholder="كود الاشتراك" style="margin-top:14px;text-align:center">
    <button class="btn primary" style="width:100%;margin-top:10px" onclick="unlockBarber()">فتح حساب الحلاق</button>
   </div>
@@ -109,7 +109,7 @@ header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px
   </div>
  </div>
  <div class="card"><div class="sectionTitle" style="font-size:17px">قائمة الانتظار</div><div id="queueList"></div></div>
- <button class="btn" style="width:100%;margin-bottom:12px;color:var(--red)" onclick="lockBarber()">تسجيل خروج الحلاق</button>
+ <button class="btn" style="width:100%;margin-bottom:12px" onclick="showView('home')">العودة للرئيسية</button>
  </div>
 </section>
 </div>
@@ -296,9 +296,15 @@ function cancelBooking(){
  localStorage.removeItem("zainliCurrentBookingId");save();renderHome();renderMyBooking();renderBarber();showToast("تم إلغاء الحجز");
 }
 function checkBarberAccess(){
- const savedMonth=localStorage.getItem("zainliBarberMonth");
  const savedId=Number(localStorage.getItem("zainliBarberId")||0);
- const ok=savedMonth===monthKey() && data.barbers.some(b=>b.id===savedId);
+ const expiry=Number(localStorage.getItem("zainliBarberExpiry")||0);
+ const ok=Date.now()<expiry && data.barbers.some(b=>b.id===savedId);
+ if(!ok && expiry && Date.now()>=expiry){
+   localStorage.removeItem("zainliBarberId");
+   localStorage.removeItem("zainliBarberStart");
+   localStorage.removeItem("zainliBarberExpiry");
+   localStorage.removeItem("zainliBarberActiveCode");
+ }
  $("#barberLock").style.display=ok?"none":"block";
  $("#barberUnlocked").style.display=ok?"block":"none";
  if(ok){selectedBarberId=savedId;renderBarber();}
@@ -306,25 +312,46 @@ function checkBarberAccess(){
 function unlockBarber(){
  const code=($("#barberCodeInput").value||"").trim().toUpperCase();
  const id=barberIdFromMonthlyCode(code);
- if(!id){showToast("الكود غير صحيح أو منتهي");return;}
+ if(!id){showToast("الكود غير صحيح أو غير صالح لهذا الشهر");return;}
+ let used=[];
+ try{used=JSON.parse(localStorage.getItem("zainliUsedBarberCodes")||"[]")}catch(e){used=[]}
+ if(used.includes(code)){showToast("هذا الكود مستخدم سابقاً");return;}
+ const start=Date.now();
+ const expiry=start+(30*24*60*60*1000);
  selectedBarberId=id;
  localStorage.setItem("zainliBarberId",String(id));
- localStorage.setItem("zainliBarberMonth",monthKey());
+ localStorage.setItem("zainliBarberStart",String(start));
+ localStorage.setItem("zainliBarberExpiry",String(expiry));
+ localStorage.setItem("zainliBarberActiveCode",code);
+ used.push(code);
+ localStorage.setItem("zainliUsedBarberCodes",JSON.stringify(used));
  $("#barberCodeInput").value="";
- showToast("تم فتح حساب الحلاق لهذا الشهر ✅");
+ showToast("تم تفعيل الاشتراك لمدة 30 يوم ✅");
  checkBarberAccess();
 }
-function lockBarber(){
- localStorage.removeItem("zainliBarberId");
- localStorage.removeItem("zainliBarberMonth");
- selectedBarberId=data.barbers[0].id;
- checkBarberAccess();
- showToast("تم تسجيل الخروج");
+function formatDate(ts){
+ if(!ts)return "-";
+ return new Date(ts).toLocaleDateString("ar-IQ",{year:"numeric",month:"2-digit",day:"2-digit"});
+}
+function subscriptionRemainingDays(){
+ const expiry=Number(localStorage.getItem("zainliBarberExpiry")||0);
+ if(!expiry)return 0;
+ return Math.max(0,Math.ceil((expiry-Date.now())/(24*60*60*1000)));
 }
 function renderBarber(){
  const b=data.barbers.find(x=>x.id===selectedBarberId)||data.barbers[0],q=qFor(b.id);
- $("#barberInfo").innerHTML='<div class="card"><div class="barberName">'+b.name+'</div><div class="meta">📞 '+b.phone+'<br>📍 '+b.area+'<br>اليوم: <strong>'+b.completedToday+' زبون</strong><br>الانتظار الحالي: <strong>'+waitMinutes(b.id)+' دقيقة تقريباً</strong></div>'+
- '<div class="statusRow">'+["open","busy","closed"].map(s=>'<button class="btn '+(b.status===s?'primary':'')+'" onclick="changeStatus(\''+s+'\')">'+statusLabel(s)+'</button>').join("")+'</div></div>';
+ const start=Number(localStorage.getItem("zainliBarberStart")||0);
+ const expiry=Number(localStorage.getItem("zainliBarberExpiry")||0);
+ const remaining=subscriptionRemainingDays();
+ $("#barberInfo").innerHTML=
+ '<div class="card"><div class="barberName">'+b.name+'</div><div class="meta">📞 '+b.phone+'<br>📍 '+b.area+'<br>اليوم: <strong>'+b.completedToday+' زبون</strong><br>الانتظار الحالي: <strong>'+waitMinutes(b.id)+' دقيقة تقريباً</strong></div>'+
+ '<div class="statusRow">'+["open","busy","closed"].map(s=>'<button class="btn '+(b.status===s?'primary':'')+'" onclick="changeStatus(\''+s+'\')">'+statusLabel(s)+'</button>').join("")+'</div></div>'+
+ '<div class="card"><div class="sectionTitle" style="font-size:17px">تفاصيل الاشتراك</div>'+
+ '<div class="meta">الحالة: <strong style="color:var(--green)">فعال</strong><br>'+
+ 'قيمة الاشتراك: <strong>15,000 د.ع / 30 يوم</strong><br>'+
+ 'تاريخ التفعيل: <strong>'+formatDate(start)+'</strong><br>'+
+ 'تاريخ الانتهاء: <strong>'+formatDate(expiry)+'</strong><br>'+
+ 'المتبقي: <strong>'+remaining+' يوم</strong></div></div>';
  $("#walkService").innerHTML=ALL_SERVICES.map(k=>'<option value="'+k+'">'+SERVICES[k].name+' - '+SERVICES[k].price.toLocaleString()+' د.ع</option>').join("");
  const list=$("#queueList");if(!q.length){list.innerHTML='<div class="empty">ماكو زبائن حالياً.</div>';return}
  list.innerHTML=q.map((x,i)=>'<div class="queueItem"><div class="num">'+(i+1)+'</div><div><strong>'+x.name+'</strong><div class="meta">'+SERVICES[x.service].name+' · '+x.source+(x.phone?' · '+x.phone:'')+'</div></div><button class="btn small" onclick="finishCustomer('+x.id+')">تم</button></div>').join("");
